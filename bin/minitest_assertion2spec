@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+# minitest_assertion2spec
+
+# 20180721, 23
+# 0.0.0
+
+# Todo:
+# 1. Don't use Files because each file is being opened multiple times; which is ironic given that I started writing this for converting Files' tests.
+
+require 'Files'
+
+def path
+  ARGV[0]
+end
+
+def filenames
+  Files.find(path: path, pattern: '.rb').paths
+end
+
+def setup2before
+  replacement_pattern = /def setup/
+  replacement_text = 'before do'
+  Files.gsub!(filenames, replacement_pattern, replacement_text)
+end
+
+def teardown2after
+  replacement_pattern = /def teardown/
+  replacement_text = 'after do'
+  Files.gsub!(filenames, replacement_pattern, replacement_text)
+end
+
+def test2describeit
+  replacement_pattern = /$def test_(.+)\n(.+)end$/m
+  replacement_text = "describe "$1" do\n    it "works" do\n      $2\n    end\nend"
+  Files.gsub!(filenames, replacement_pattern, replacement_text)
+end
+
+def assert2must
+  
+end
+
+def main
+  setup2before
+  teardown2after
+  test2describeit
+  assert2must
+end
+
+main
