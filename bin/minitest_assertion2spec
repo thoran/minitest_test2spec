@@ -2,10 +2,10 @@
 # minitest_assertion2spec
 
 # 20180728
-# 0.1.2
+# 0.2.0
 
 # Todo:
-# 1. Don't use Files because each file is being opened multiple times; which is ironic given that I started writing this for converting Files' tests.
+# 1. Don't use Files (or similar approaches) because each file is being opened multiple times; which is ironic given that I started writing this for converting Files' tests.
 
 require 'tempfile'
 require 'fileutils'
@@ -67,10 +67,27 @@ def test2describeit
   end
 end
 
+def assert_equal2must_equal
+  filenames.each do |filename|
+    temp_file = Tempfile.new(filename + '.tmp')
+    begin
+      existing_file_contents = File.read(filename)
+      new_file_contents = existing_file_contents.gsub(/assert_equal +(.+), +(.+)/, "expect\(\\2\).must_equal \\1")
+      temp_file.puts new_file_contents
+      temp_file.close
+      FileUtils.mv(temp_file.path, filename)
+    ensure
+      temp_file.close
+      temp_file.unlink
+    end
+  end
+end
+
 def main
   setup2before
   teardown2after
   test2describeit
+  assert_equal2must_equal
 end
 
 main
