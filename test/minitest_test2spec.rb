@@ -1,14 +1,14 @@
-# test/minitest_assertion2spec.rb
+# test/minitest_test2spec.rb
 
 require 'bundler/setup'
 require 'fileutils'
 require 'minitest/autorun'
 
-describe "minitest_assertion2spec" do
+describe "minitest_test2spec" do
 
   before do
     @root_directory = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-    @program_name = @root_directory + '/' + File.join('bin', 'minitest_assertion2spec')
+    @program_name = @root_directory + '/' + File.join('bin', 'minitest_test2spec')
     @fixtures_directory = @root_directory + '/' + File.join('test', 'fixtures')
     @tmp_directory = @root_directory + '/' + File.join('test', 'tmp')
     FileUtils.mkdir(@tmp_directory)

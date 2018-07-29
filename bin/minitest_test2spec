@@ -1,0 +1,119 @@
+#!/usr/bin/env ruby
+# minitest_test2spec
+
+# 20180729
+# 0.6.0
+
+# Changes since 0.5:
+# 1. Not opening each file multiple times now.
+# 2. Change of name: /minitest_assertion2spec/minitest_test2spec/.
+
+# Todo:
+# 1. Don't use Files (or similar approaches) because each file is being opened multiple times; which is ironic given that I started writing this for converting Files' tests.  Done as of 0.6 after pinching the structure from should2expect.
+
+require 'fileutils'
+
+class MiniTestFile
+
+  attr_accessor :contents
+  attr_accessor :minitest_filename
+
+  def initialize(minitest_filename)
+    @minitest_filename = minitest_filename
+    @contents = File.read(minitest_filename)
+  end
+
+  def transform
+    class2describe
+    setup2before
+    teardown2after
+    test2describeit
+    assert_equal2must_equal
+    assert_matcher2must_match
+    assert_nil2must_be_nil
+    write
+  end
+
+  private
+
+  def class2describe
+    contents.gsub!(/class +TC(_*)(.+?)_(.+) +< +MiniTest::Test/, "describe \"\\2 \\3\" do")
+  end
+
+  def setup2before
+    contents.gsub!(/def setup/, 'before do')
+  end
+
+  def teardown2after
+    contents.gsub!(/def teardown/, 'after do')
+  end
+
+  def test2describeit
+    existing_contents = contents
+    new_contents = ''
+    in_test_method = false
+    test_method_pattern = /^ *def +test_(.+?)$/
+    existing_contents.each_line do |line|
+      if in_test_method
+        if line =~ /end$/
+          in_test_method = false
+          new_contents << '    end' + "\n"
+          new_contents << '  end' + "\n"
+        else
+          new_contents << '  ' + line
+        end
+      elsif line =~ test_method_pattern
+        in_test_method = true
+        md = line.match(test_method_pattern)
+        new_contents << '  describe ' + '"' + md[1].gsub('_', ' ') + '"' + ' do' + "\n"
+        new_contents << '    it "works" do' + "\n"
+      else
+        new_contents << line
+      end
+    end
+    self.contents = new_contents
+  end
+
+  def assert_equal2must_equal
+    contents.gsub!(/assert_equal +(.+), +(.+)/, "expect\(\\2\).must_equal \\1")
+  end
+
+  def assert_matcher2must_match
+    contents.gsub!(/assert +(.+?) +=\~ +(.+)/, "expect\(\\1\).must_match \\2")
+  end
+
+  def assert_nil2must_be_nil
+    contents.gsub!(/assert_nil +(.+)/, "expect\(\\1\).must_be_nil")
+  end
+
+  def write
+    File.write(minitest_filename, contents)
+  end
+
+end # class MiniTestFile
+
+def input_filenames
+  if ARGV[0]
+    if File.directory?(ARGV[0])
+      Dir["#{ARGV[0]}/**/*.rb"]
+    else
+      Dir[ARGV[0]]
+    end
+  else
+    Dir['*.rb']
+  end
+end
+
+def minitest_filenames
+  input_filenames.reject do |input_filename|
+    File.directory?(input_filename)
+  end
+end
+
+def main
+  minitest_filenames.each do |minitest_filename|
+    MiniTestFile.new(minitest_filename).transform
+  end
+end
+
+main if __FILE__ == $0
