@@ -12,7 +12,7 @@ describe "minitest_test2spec" do
     @fixtures_directory = @root_directory + '/' + File.join('test', 'fixtures')
     @tmp_directory = @root_directory + '/' + File.join('test', 'tmp')
     FileUtils.mkdir(@tmp_directory)
-    FileUtils.cp(@fixtures_directory + '/' + 'assert_style.rb', @tmp_directory + '/' + 'test_file.rb')
+    FileUtils.cp(@fixtures_directory + '/' + 'test_style.rb', @tmp_directory + '/' + 'test_file.rb')
   end
 
   it "works" do
