@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 # minitest_assertion2spec
 
-# 20180728
-# 0.2.0
+# 20180728, 29
+# 0.3.0
 
 # Todo:
 # 1. Don't use Files (or similar approaches) because each file is being opened multiple times; which is ironic given that I started writing this for converting Files' tests.
@@ -83,11 +83,28 @@ def assert_equal2must_equal
   end
 end
 
+def class2describe
+  filenames.each do |filename|
+    temp_file = Tempfile.new(filename + '.tmp')
+    begin
+      existing_file_contents = File.read(filename)
+      new_file_contents = existing_file_contents.gsub(/class +TC(_*)(.+?)_(.+) +< +MiniTest::Test/, "describe \"\\2 \\3\" do")
+      temp_file.puts new_file_contents
+      temp_file.close
+      FileUtils.mv(temp_file.path, filename)
+    ensure
+      temp_file.close
+      temp_file.unlink
+    end
+  end
+end
+
 def main
   setup2before
   teardown2after
   test2describeit
   assert_equal2must_equal
+  class2describe
 end
 
 main
