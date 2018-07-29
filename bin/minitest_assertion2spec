@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 # minitest_assertion2spec
 
-# 20180721, 23
-# 0.1.0
+# 20180727
+# 0.1.1
 
 # Todo:
 # 1. Don't use Files because each file is being opened multiple times; which is ironic given that I started writing this for converting Files' tests.
@@ -30,38 +30,39 @@ def teardown2after
 end
 
 def test2describeit
-  replacement_pattern = /^ *def test_(.+?)$\n(.+?)\n *end/m
-  replacement_text = "describe \"$1\" do\n    it \"works\" do\n      $2\n    end\nend"
+  new_file_contents = ''
   filenames.each do |filename|
-    puts filename
-    File.open(filename, 'r+') do |f|
-      contents = f.read
-      contents.each line
-      if md = contents.scan(replacement_pattern)
-        md.each do |e|
-          puts 'describe ' + '"' + e.first.gsub('_', ' ') + '"' + ' do'
-          puts '  it "works" do'
-          puts e.last
-          puts '  end'
-          puts 'end'
+    File.open(filename, 'w+') do |f|
+      in_test_method = false
+      existing_file_contents = f.read
+      test_method_pattern = /^ *def +test_(.+?)$/
+      existing_file_contents.each_line do |line|
+        if in_test_method
+          if line =~ /end$/
+            in_test_method = false
+            new_file_contents << '    end' + "\n"
+            new_file_contents << '  end' + "\n"
+          else
+            new_file_contents << '  ' + line
+          end
+        elsif line =~ test_method_pattern
+          in_test_method = true
+          md = line.match(test_method_pattern)
+          new_file_contents << '  describe ' + '"' + md[0].gsub('_', ' ') + '"' + ' do' + "\n"
+          new_file_contents << '    it "works" do' + "\n"
+        else
+          new_file_contents << line
         end
       end
-      # contents = contents.gsub(replacement_pattern, replacement_text)
-      # f.write(contents)
+      f.puts new_file_contents
     end
-    2.times{puts}
   end
-end
-
-def assert2must
-  
 end
 
 def main
   setup2before
   teardown2after
   test2describeit
-  assert2must
 end
 
 main
