@@ -2,7 +2,7 @@
 # minitest_assertion2spec
 
 # 20180721, 23
-# 0.0.1
+# 0.1.0
 
 # Todo:
 # 1. Don't use Files because each file is being opened multiple times; which is ironic given that I started writing this for converting Files' tests.
@@ -29,9 +29,39 @@ def teardown2after
   Files.gsub!(filenames, replacement_pattern, replacement_text)
 end
 
+def test2describeit
+  replacement_pattern = /^ *def test_(.+?)$\n(.+?)\n *end/m
+  replacement_text = "describe \"$1\" do\n    it \"works\" do\n      $2\n    end\nend"
+  filenames.each do |filename|
+    puts filename
+    File.open(filename, 'r+') do |f|
+      contents = f.read
+      contents.each line
+      if md = contents.scan(replacement_pattern)
+        md.each do |e|
+          puts 'describe ' + '"' + e.first.gsub('_', ' ') + '"' + ' do'
+          puts '  it "works" do'
+          puts e.last
+          puts '  end'
+          puts 'end'
+        end
+      end
+      # contents = contents.gsub(replacement_pattern, replacement_text)
+      # f.write(contents)
+    end
+    2.times{puts}
+  end
+end
+
+def assert2must
+  
+end
+
 def main
   setup2before
   teardown2after
+  test2describeit
+  assert2must
 end
 
 main
