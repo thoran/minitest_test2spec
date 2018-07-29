@@ -2,18 +2,20 @@
 # minitest_assertion2spec
 
 # 20180729
-# 0.5.0
+# 0.5.1
 
 # Changes:
 # 1. + assert_nil2must_be_nil().
+# 0/1
+# 2. + tests.
+# 3. ~ assert_nil2must_be_nil(), because I made the capture group matcher non-greedy, when it should have been greedy.  Good thing I had tests!
 
 # Todo:
 # 1. Don't use Files (or similar approaches) because each file is being opened multiple times; which is ironic given that I started writing this for converting Files' tests.
 
-require 'tempfile'
-require 'fileutils'
-
 require 'Files'
+require 'fileutils'
+require 'tempfile'
 
 def path
   @path ||= ARGV[0]
@@ -123,7 +125,7 @@ def assert_nil2must_be_nil
     temp_file = Tempfile.new(filename + '.tmp')
     begin
       existing_file_contents = File.read(filename)
-      new_file_contents = existing_file_contents.gsub(/assert_nil +(.+?)/, "expect\(\\1\).must_be_nil")
+      new_file_contents = existing_file_contents.gsub(/assert_nil +(.+)/, "expect\(\\1\).must_be_nil")
       temp_file.puts new_file_contents
       temp_file.close
       FileUtils.mv(temp_file.path, filename)
